@@ -1,2 +1,3 @@
 # AIT-Practice
-Application for the "Advanced IoT Technologies" course
+This application uses CoAP to provide access to the peripherals of the Kinetis Phytech Board.
+
