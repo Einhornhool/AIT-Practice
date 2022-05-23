@@ -92,6 +92,8 @@ static ssize_t _led_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, void * 
                 return gcoap_response(pdu, buf, len, COAP_CODE_BAD_REQUEST);
             }
     }
+
+    return 0;
 }
 
 
