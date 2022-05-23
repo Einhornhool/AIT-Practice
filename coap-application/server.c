@@ -8,6 +8,7 @@
 #define ENABLE_DEBUG 0
 #include "debug.h"
 
+int sensor_value = 42;
 // static ssize_t _encode_link(const coap_resource_t *resource, char *buf,
                             // size_t maxlen, coap_link_encoder_ctx_t *context);
 static ssize_t _sensor_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, void * ctx);
@@ -59,7 +60,6 @@ static ssize_t _sensor_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, void
     size_t resp_len = coap_opt_finish(pdu, COAP_OPT_FINISH_PAYLOAD);
 
     /* TODO: Read Saul Sensors */
-    int sensor_value = 42;
     resp_len += fmt_u16_dec((char *)pdu->payload, sensor_value);
     return resp_len;
 }
@@ -84,7 +84,7 @@ static ssize_t _led_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, void * 
             if (pdu->payload_len <= 5) {
                 char payload[6] = { 0 };
                 memcpy(payload, (char *)pdu->payload, pdu->payload_len);
-                uint16_t value = (uint16_t)strtoul(payload, NULL, 10);
+                sensor_value = (uint16_t)strtoul(payload, NULL, 10);
                 /* TODO: Set Saul LED to new value */
                 return gcoap_response(pdu, buf, len, COAP_CODE_CHANGED);
             }
