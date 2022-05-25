@@ -5,6 +5,7 @@ RIOTBASE = $(CURDIR)/../RIOT
 
 CFLAGS += -DCONFIG_IEEE802154_DEFAULT_CHANNEL=26
 CFLAGS += -DCONFIG_GNRC_IPV6_NIB_SLAAC=1
+CFLAGS += -DCONFIG_GCOAP_PDU_BUF_SIZE=512
 
 # Include packages that pull up and auto-init the link layer.
 # NOTE: 6LoWPAN will be included if IEEE802.15.4 devices are present

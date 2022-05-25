@@ -58,19 +58,19 @@ static ssize_t _led_btn_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, voi
 
 /* Define available resources and callback functions */
 static const coap_resource_t _resources[] = {
-    { "/led/red", COAP_GET | COAP_PUT, _led_btn_handler, &devs[LED_RED]},
-    { "/led/green", COAP_GET | COAP_PUT, _led_btn_handler, &devs[LED_GREEN]},
-    { "/led/blue", COAP_GET | COAP_PUT, _led_btn_handler, &devs[LED_BLUE] },
     { "/btn/0", COAP_GET | COAP_PUT, _led_btn_handler, &devs[BTN_0] },
     { "/btn/1", COAP_GET | COAP_PUT, _led_btn_handler, &devs[BTN_1] },
-    { "/sensor/temp/hdc", COAP_GET, _sensor_handler, &devs[SENS_TEMP_HDC] },
+    { "/led/blue", COAP_GET | COAP_PUT, _led_btn_handler, &devs[LED_BLUE] },
+    { "/led/green", COAP_GET | COAP_PUT, _led_btn_handler, &devs[LED_GREEN]},
+    { "/led/red", COAP_GET | COAP_PUT, _led_btn_handler, &devs[LED_RED]},
+    { "/sensor/acce", COAP_GET, _sensor_handler, &devs[SENS_ACCE] },
+    { "/sensor/colo", COAP_GET, _sensor_handler, &devs[SENS_COLO] },
     { "/sensor/hum", COAP_GET, _sensor_handler, &devs[SENS_HUM] },
     { "/sensor/mag", COAP_GET, _sensor_handler, &devs[SENS_MAG] },
-    { "/sensor/acce", COAP_GET, _sensor_handler, &devs[SENS_ACCE] },
-    { "/sensor/temp/mpl", COAP_GET, _sensor_handler, &devs[SENS_TEMP_MPL] },
-    { "/sensor/pres", COAP_GET, _sensor_handler, &devs[SENS_PRES] },
-    { "/sensor/colo", COAP_GET, _sensor_handler, &devs[SENS_COLO] },
     { "/sensor/objtemp", COAP_GET, _sensor_handler, &devs[SENS_OBJTEMP] },
+    { "/sensor/pres", COAP_GET, _sensor_handler, &devs[SENS_PRES] },
+    { "/sensor/temp/hdc", COAP_GET, _sensor_handler, &devs[SENS_TEMP_HDC] },
+    { "/sensor/temp/mpl", COAP_GET, _sensor_handler, &devs[SENS_TEMP_MPL] },
 };
 
 static gcoap_listener_t _listener = {
