@@ -131,7 +131,7 @@ static void _write(int num, char *val, size_t len)
 
 static ssize_t _sensor_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, void * ctx)
 {
-    char sensor_value[256];
+    char sensor_value[64];
     size_t length = 0;
     _probe((*(int *) ctx), sensor_value, &length);
 
@@ -141,7 +141,6 @@ static ssize_t _sensor_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, void
 
     memcpy((char *)pdu->payload, sensor_value, length);
     resp_len += length;
-    // resp_len += fmt_s16_dec((char *)pdu->payload, sensor_value[0]);
     return resp_len;
 }
 
@@ -156,9 +155,11 @@ static ssize_t _led_btn_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, voi
             coap_opt_add_format(pdu, COAP_FORMAT_TEXT);
             size_t resp_len = coap_opt_finish(pdu, COAP_OPT_FINISH_PAYLOAD);
             /* TODO: Read Saul LED value and write into payload buffer */
-            int16_t led_value[3] = {0};
-            // _probe((*(int *) ctx), led_value);
-            resp_len += fmt_s16_dec((char *)pdu->payload, led_value[0]);
+            char led_value[64] = {0};
+            size_t length;
+            _probe((*(int *) ctx), led_value, &length);
+            memcpy((char *)pdu->payload, led_value, length);
+            resp_len += length;
             return resp_len;
         case COAP_PUT:
             if (pdu->payload_len <= 5) {
