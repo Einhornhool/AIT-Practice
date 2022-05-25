@@ -82,7 +82,7 @@ static gcoap_listener_t _listener = {
     NULL
 };
 
-static void _probe(int num, int16_t * val)
+static void _probe(int num, char * val, size_t * len)
 {
     size_t dim;
     phydat_t res;
@@ -99,10 +99,7 @@ static void _probe(int num, int16_t * val)
         return;
     }
 
-    for (size_t i = 0; i < dim; i++) {
-        val[i] = res.val[i];
-        printf("%d ", res.val[i]);
-    }
+    *len = phydat_to_json(&res, dim, val);
 }
 
 static void _write(int num, char *val, size_t len)
@@ -134,14 +131,17 @@ static void _write(int num, char *val, size_t len)
 
 static ssize_t _sensor_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, void * ctx)
 {
-    int16_t sensor_value[3];
-    _probe((*(int *) ctx), sensor_value);
+    char sensor_value[256];
+    size_t length = 0;
+    _probe((*(int *) ctx), sensor_value, &length);
 
     gcoap_resp_init(pdu, buf, len, COAP_CODE_CONTENT);
     coap_opt_add_format(pdu, COAP_FORMAT_TEXT);
     size_t resp_len = coap_opt_finish(pdu, COAP_OPT_FINISH_PAYLOAD);
 
-    resp_len += fmt_s16_dec((char *)pdu->payload, sensor_value[0]);
+    memcpy((char *)pdu->payload, sensor_value, length);
+    resp_len += length;
+    // resp_len += fmt_s16_dec((char *)pdu->payload, sensor_value[0]);
     return resp_len;
 }
 
@@ -156,8 +156,8 @@ static ssize_t _led_btn_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, voi
             coap_opt_add_format(pdu, COAP_FORMAT_TEXT);
             size_t resp_len = coap_opt_finish(pdu, COAP_OPT_FINISH_PAYLOAD);
             /* TODO: Read Saul LED value and write into payload buffer */
-            int16_t led_value[3];
-            _probe((*(int *) ctx), led_value);
+            int16_t led_value[3] = {0};
+            // _probe((*(int *) ctx), led_value);
             resp_len += fmt_s16_dec((char *)pdu->payload, led_value[0]);
             return resp_len;
         case COAP_PUT:
