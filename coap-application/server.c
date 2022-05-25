@@ -1,29 +1,77 @@
 #include "coap_app.h"
 #include "net/gcoap.h"
 #include "net/utils.h"
-#include "saul.h"
+#include "saul_reg.h"
 #include "saul/periph.h"
 #include "od.h"
 
 #define ENABLE_DEBUG 0
 #include "debug.h"
 
-int sensor_value = 42;
-// static ssize_t _encode_link(const coap_resource_t *resource, char *buf,
-                            // size_t maxlen, coap_link_encoder_ctx_t *context);
+// #0	ACT_SWITCH      LED(red)
+// #1	ACT_SWITCH      LED(green)
+// #2	ACT_SWITCH      LED(blue)
+// #3	SENSE_BTN       Button(SW0)
+// #4	SENSE_BTN       Button(CS0)
+// #5	SENSE_TEMP      hdc1000
+// #6	SENSE_HUM       hdc1000
+// #7	SENSE_MAG       mag3110
+// #8	SENSE_ACCE      mma8x5x
+// #9	SENSE_TEMP      mpl3115a2
+// #10	SENSE_PRES      mpl3115a2
+// #11	SENSE_COLO      tcs37727
+// #12	SENSE_OBJTEMP	tmp00x
+
+#define LED_RED     0
+#define LED_GREEN   1
+#define LED_BLUE    2
+
+#define BTN_0       3
+#define BTN_1       4
+
+#define SENS_TEMP_HDC   5
+#define SENS_HUM        6
+#define SENS_MAG        7
+#define SENS_ACCE       8
+#define SENS_TEMP_MPL   9
+#define SENS_PRES       10
+#define SENS_COLO       11
+#define SENS_OBJTEMP    12
+
+int devs[] = {  LED_RED,
+                LED_GREEN,
+                LED_BLUE,
+                BTN_0,
+                BTN_1,
+                SENS_TEMP_HDC,
+                SENS_HUM,
+                SENS_MAG,
+                SENS_ACCE,
+                SENS_TEMP_MPL,
+                SENS_PRES,
+                SENS_COLO,
+                SENS_OBJTEMP
+            };
+
 static ssize_t _sensor_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, void * ctx);
-static ssize_t _led_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, void * ctx);
+static ssize_t _led_btn_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, void * ctx);
 
 /* Define available resources and callback functions */
 static const coap_resource_t _resources[] = {
-    { "/saul/leds", COAP_GET | COAP_PUT, _led_handler, NULL},
-    { "/saul/sensors", COAP_GET, _sensor_handler, NULL }
+    { "/led/red", COAP_GET | COAP_PUT, _led_btn_handler, &devs[LED_RED]},
+    { "/led/green", COAP_GET | COAP_PUT, _led_btn_handler, &devs[LED_GREEN]},
+    { "/led/blue", COAP_GET | COAP_PUT, _led_btn_handler, &devs[LED_BLUE] },
+    { "/btn/0", COAP_GET | COAP_PUT, _led_btn_handler, &devs[BTN_0] },
+    { "/btn/1", COAP_GET | COAP_PUT, _led_btn_handler, &devs[BTN_1] },
+    { "/sensor/temp/hdc", COAP_GET, _sensor_handler, &devs[SENS_TEMP_HDC] },
+    { "/sensor/hum", COAP_GET, _sensor_handler, &devs[SENS_HUM] },
+    { "/sensor/mag", COAP_GET, _sensor_handler, &devs[SENS_MAG] },
+    { "/sensor/acce", COAP_GET, _sensor_handler, &devs[SENS_ACCE] },
+    { "/sensor/temp/mpl", COAP_GET, _sensor_handler, &devs[SENS_TEMP_MPL] },
+    { "/sensor/pres", COAP_GET, _sensor_handler, &devs[SENS_PRES] },
+    { "/sensor/colo", COAP_GET, _sensor_handler, &devs[SENS_COLO] },
+    { "/sensor/objtemp", COAP_GET, _sensor_handler, &devs[SENS_OBJTEMP] },
 };
-
-// static const char *_link_params[] = {
-//     ";ct=0;rt=\"count\";obs",
-//     NULL
-// };
 
 static gcoap_listener_t _listener = {
     _resources,
@@ -34,40 +82,71 @@ static gcoap_listener_t _listener = {
     NULL
 };
 
-// static ssize_t _encode_link(const coap_resource_t *resource, char *buf,
-//                             size_t maxlen, coap_link_encoder_ctx_t *context)
-// {
-//     ssize_t res = gcoap_encode_link(resource, buf, maxlen, context);
-//     if (res > 0) {
-//         if (_link_params[context->link_pos]
-//                 && (strlen(_link_params[context->link_pos]) < (maxlen - res))) {
-//             if (buf) {
-//                 memcpy(buf+res, _link_params[context->link_pos],
-//                        strlen(_link_params[context->link_pos]));
-//             }
-//             return res + strlen(_link_params[context->link_pos]);
-//         }
-//     }
+static void _probe(int num, int16_t * val)
+{
+    size_t dim;
+    phydat_t res;
 
-//     return res;
-// }
+    saul_reg_t * dev = saul_reg_find_nth(num);
+    if (dev == NULL) {
+        puts("error: undefined device id given");
+        return;
+    }
+
+    dim = saul_reg_read(dev, &res);
+    if (dim <= 0) {
+        printf("error: failed to read from device #%i\n", num);
+        return;
+    }
+
+    for (size_t i = 0; i < dim; i++) {
+        val[i] = res.val[i];
+        printf("%d ", res.val[i]);
+    }
+}
+
+static void _write(int num, char *val, size_t len)
+{
+    int dim;
+    phydat_t data;
+
+    saul_reg_t * dev = saul_reg_find_nth(num);
+    if (dev == NULL) {
+        puts("error: undefined device id given");
+        return;
+    }
+
+    for (size_t i = 0; i < len; i++) {
+        data.val[i] = val[i];
+    }
+
+    dim = saul_reg_write(dev, &data);
+    if (dim <= 0) {
+        if (dim == -ENOTSUP) {
+            printf("error: device #%i is not writable\n", num);
+        }
+        else {
+            printf("error: failure to write to device #%i\n", num);
+        }
+        return;
+    }
+}
 
 static ssize_t _sensor_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, void * ctx)
 {
-    (void) ctx;
+    int16_t sensor_value[3];
+    _probe((*(int *) ctx), sensor_value);
+
     gcoap_resp_init(pdu, buf, len, COAP_CODE_CONTENT);
     coap_opt_add_format(pdu, COAP_FORMAT_TEXT);
     size_t resp_len = coap_opt_finish(pdu, COAP_OPT_FINISH_PAYLOAD);
 
-    /* TODO: Read Saul Sensors */
-    resp_len += fmt_u16_dec((char *)pdu->payload, sensor_value);
+    resp_len += fmt_s16_dec((char *)pdu->payload, sensor_value[0]);
     return resp_len;
 }
 
-static ssize_t _led_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, void * ctx)
+static ssize_t _led_btn_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, void * ctx)
 {
-    (void)ctx;
-
     /* read coap method type in packet */
     unsigned method_flag = coap_method2flag(coap_get_code_detail(pdu));
 
@@ -77,15 +156,15 @@ static ssize_t _led_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, void * 
             coap_opt_add_format(pdu, COAP_FORMAT_TEXT);
             size_t resp_len = coap_opt_finish(pdu, COAP_OPT_FINISH_PAYLOAD);
             /* TODO: Read Saul LED value and write into payload buffer */
-            int led_value = 0;
-            resp_len += fmt_u16_dec((char *)pdu->payload, led_value);
+            int16_t led_value[3];
+            _probe((*(int *) ctx), led_value);
+            resp_len += fmt_s16_dec((char *)pdu->payload, led_value[0]);
             return resp_len;
         case COAP_PUT:
             if (pdu->payload_len <= 5) {
                 char payload[6] = { 0 };
                 memcpy(payload, (char *)pdu->payload, pdu->payload_len);
-                sensor_value = (uint16_t)strtoul(payload, NULL, 10);
-                /* TODO: Set Saul LED to new value */
+                _write(*((int *) ctx), payload, pdu->payload_len);
                 return gcoap_response(pdu, buf, len, COAP_CODE_CHANGED);
             }
             else {
