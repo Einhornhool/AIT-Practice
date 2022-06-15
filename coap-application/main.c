@@ -6,6 +6,7 @@
 #include "net/cord/ep_standalone.h"
 #include "net/cord/ep.h"
 #include "net/gnrc/ipv6/nib.h"
+#include "net/gnrc/ipv6/nib/abr.h"
 #include "net/ipv6/addr.h"
 
 #define MAIN_QUEUE_SIZE (4)
@@ -58,7 +59,6 @@ static void _connect_to_abr(void)
 
     if (gnrc_ipv6_nib_abr_iter(&state, &entry)) {
         sock_udp_ep_t remote;
-        // char interface[] = "lowpan0";
 
         ipv6_addr_to_str(ipv6_addr, (ipv6_addr_t *)&entry.addr, sizeof(ipv6_addr));
         sprintf(fmt_addr, "[%s]", ipv6_addr);
