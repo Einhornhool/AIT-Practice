@@ -4,8 +4,8 @@ BOARD = pba-d-01-kw2x
 RIOTBASE = $(CURDIR)/../RIOT
 
 # Default to using ethos for providing the uplink when not on native
-UPLINK ?= ethos
-USE_DHCPV6 ?= 0
+# UPLINK ?= ethos
+# USE_DHCPV6 ?= 0
 
 CFLAGS += -DCONFIG_IEEE802154_DEFAULT_CHANNEL=26
 CFLAGS += -DCONFIG_GNRC_IPV6_NIB_SLAAC=1
@@ -22,9 +22,9 @@ USEMODULE += gnrc_sixlowpan_border_router_default
 USEMODULE += gnrc_icmpv6_echo
 USEMODULE += cord_ep_standalone
 
-# include UHCP client
-USEMODULE += gnrc_uhcpc
-USEMODULE += gnrc_sixlowpan_border_router_default
+# # include UHCP client
+# USEMODULE += gnrc_uhcpc
+# USEMODULE += gnrc_sixlowpan_border_router_default
 
 USEMODULE += saul_default
 
@@ -39,12 +39,12 @@ DEVELHELP ?= 1
 # Change this to 0 show compiler invocation lines by default:
 QUIET ?= 1
 
-TAP ?= tap0
-#IPV6_PREFIX ?= 2001:67c:254:b0b2:affe:4000:0:1/84
-IPV6_PREFIX ?= 2001:db8::/64
+# TAP ?= tap0
+# #IPV6_PREFIX ?= 2001:67c:254:b0b2:affe:4000:0:1/84
+# IPV6_PREFIX ?= 2001:db8::/64
 
-ETHOS_BAUDRATE ?= 115200
-include $(CURDIR)/Makefile.ethos.conf
+# ETHOS_BAUDRATE ?= 115200
+# include $(CURDIR)/Makefile.ethos.conf
 
 include $(RIOTBASE)/Makefile.include
 
@@ -54,15 +54,15 @@ ifndef CONFIG_CORD_LT
 CFLAGS += -DCONFIG_CORD_LT=60
 endif
 
-.PHONY: host-tools
+# .PHONY: host-tools
 
-host-tools:
-	$(Q)env -u CC -u CFLAGS $(MAKE) -C $(RIOTTOOLS)
+# host-tools:
+# 	$(Q)env -u CC -u CFLAGS $(MAKE) -C $(RIOTTOOLS)
 
-.PHONY: uhcpd-daemon
+# .PHONY: uhcpd-daemon
 
-uhcpd-daemon: host-tools
-	$(RIOTTOOLS)/uhcpd/bin/uhcpd $(TAP) $(IPV6_PREFIX) &
+# uhcpd-daemon: host-tools
+# 	$(RIOTTOOLS)/uhcpd/bin/uhcpd $(TAP) $(IPV6_PREFIX) &
 
-# Set a custom channel if needed
-include $(RIOTMAKE)/default-radio-settings.inc.mk
+# # Set a custom channel if needed
+# include $(RIOTMAKE)/default-radio-settings.inc.mk
