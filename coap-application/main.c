@@ -50,7 +50,7 @@ static void _connect_to_abr(void)
     gnrc_ipv6_nib_abr_t entry;
     void * state = NULL;
     char ipv6_addr[IPV6_ADDR_MAX_STR_LEN];
-    // char fmt_addr[IPV6_ADDR_MAX_STR_LEN + 2];
+    char fmt_addr[IPV6_ADDR_MAX_STR_LEN + 2];
 
     while (gnrc_ipv6_nib_abr_iter(&state, &entry)) {
         gnrc_ipv6_nib_abr_print(&entry);
@@ -61,10 +61,10 @@ static void _connect_to_abr(void)
         char interface[] = "lowpan";
 
         ipv6_addr_to_str(ipv6_addr, (ipv6_addr_t *)&entry.addr, sizeof(ipv6_addr));
-        // sprintf(fmt_addr, "[%s]", ipv6_addr);
-        // printf("%s\n", fmt_addr);
+        sprintf(fmt_addr, "[%s]", ipv6_addr);
+        printf("%s\n", fmt_addr);
 
-        if (make_sock_ep(&remote, ipv6_addr) < 0) {
+        if (make_sock_ep(&remote, fmt_addr) < 0) {
             puts("Could not parse address.");
         }
 
