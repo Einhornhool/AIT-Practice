@@ -5,6 +5,7 @@ RIOTBASE = $(CURDIR)/../RIOT
 
 # Default to using ethos for providing the uplink when not on native
 UPLINK ?= ethos
+USE_DHCPV6 ?= 0
 
 CFLAGS += -DCONFIG_IEEE802154_DEFAULT_CHANNEL=26
 CFLAGS += -DCONFIG_GNRC_IPV6_NIB_SLAAC=1
@@ -39,7 +40,8 @@ DEVELHELP ?= 1
 QUIET ?= 1
 
 TAP ?= tap0
-IPV6_PREFIX ?= 2001:67c:254:b0b2:affe:4000:0:1/84
+#IPV6_PREFIX ?= 2001:67c:254:b0b2:affe:4000:0:1/84
+IPV6_PREFIX ?= 2001:db8::/64
 
 ETHOS_BAUDRATE ?= 115200
 include $(CURDIR)/Makefile.ethos.conf
@@ -61,3 +63,6 @@ host-tools:
 
 uhcpd-daemon: host-tools
 	$(RIOTTOOLS)/uhcpd/bin/uhcpd $(TAP) $(IPV6_PREFIX) &
+
+# Set a custom channel if needed
+include $(RIOTMAKE)/default-radio-settings.inc.mk

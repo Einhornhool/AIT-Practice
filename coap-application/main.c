@@ -58,7 +58,7 @@ static void _connect_to_abr(void)
 
     if (gnrc_ipv6_nib_abr_iter(&state, &entry)) {
         sock_udp_ep_t remote;
-        char interface[] = "lowpan";
+        // char interface[] = "lowpan0";
 
         ipv6_addr_to_str(ipv6_addr, (ipv6_addr_t *)&entry.addr, sizeof(ipv6_addr));
         sprintf(fmt_addr, "[%s]", ipv6_addr);
@@ -68,7 +68,7 @@ static void _connect_to_abr(void)
             puts("Could not parse address.");
         }
 
-        if (cord_ep_register(&remote, interface) != CORD_EP_OK) {
+        if (cord_ep_register(&remote, NULL) != CORD_EP_OK) {
             puts("Registration failed");
         }
         else {
