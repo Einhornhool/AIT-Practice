@@ -6,6 +6,7 @@
 #include "net/cord/ep_standalone.h"
 #include "net/cord/ep.h"
 #include "net/gnrc/ipv6/nib.h"
+#include "net/ipv6/addr.h"
 
 #define MAIN_QUEUE_SIZE (4)
 static msg_t _main_msg_queue[MAIN_QUEUE_SIZE];
@@ -48,15 +49,18 @@ static void _connect_to_abr(void)
 {
     gnrc_ipv6_nib_abr_t entry;
     void * state = NULL;
+    char addr[IPV6_ADDR_MAX_STR_LEN];
+    ipv6_addr_to_str(addr, (ipv6_addr_t *)&entry.addr, sizeof(addr));
 
     if (gnrc_ipv6_nib_abr_iter(&state, &entry)) {
         sock_udp_ep_t remote;
+        char interface[] = "lowpan";
 
-        if (make_sock_ep(&remote, &entry.addr) < 0) {
+        if (make_sock_ep(&remote, addr) < 0) {
             puts("Could not parse address.");
         }
 
-        if (cord_ep_register(&remote, 'lowpan0') != CORD_EP_OK) {
+        if (cord_ep_register(&remote, interface) != CORD_EP_OK) {
             puts("Registration failed");
         }
         else {
