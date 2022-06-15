@@ -49,7 +49,10 @@ static void _connect_to_abr(void)
 {
     gnrc_ipv6_nib_abr_t entry;
     void * state = NULL;
-    char addr[IPV6_ADDR_MAX_STR_LEN];
+    char ipv6_addr[IPV6_ADDR_MAX_STR_LEN];
+    char fmt_addr[IPV6_ADDR_MAX_STR_LEN + 2]
+    fprintf(fmt_addr, "[%s]", ipv6_addr);
+    printf("%s\n", fmt_addr);
     ipv6_addr_to_str(addr, (ipv6_addr_t *)&entry.addr, sizeof(addr));
 
     if (gnrc_ipv6_nib_abr_iter(&state, &entry)) {
