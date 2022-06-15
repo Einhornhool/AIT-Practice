@@ -1,8 +1,11 @@
 #include "net/gcoap.h"
 #include "shell.h"
 #include "coap_app.h"
+#include "net/sock/util.h"
 #include "net/cord/common.h"
 #include "net/cord/ep_standalone.h"
+#include "net/cord/ep.h"
+#include "net/gnrc/ipv6/nib.h"
 
 #define MAIN_QUEUE_SIZE (4)
 static msg_t _main_msg_queue[MAIN_QUEUE_SIZE];
@@ -23,6 +26,46 @@ static void _on_ep_event(cord_ep_standalone_event_t event)
     }
 }
 
+static int make_sock_ep(sock_udp_ep_t *ep, const char *addr)
+{
+    ep->port = 0;
+    if (sock_udp_name2ep(ep, addr) < 0) {
+        return -1;
+    }
+    /* if netif not specified in addr */
+    if ((ep->netif == SOCK_ADDR_ANY_NETIF) && (gnrc_netif_numof() == 1)) {
+        /* assign the single interface found in gnrc_netif_numof() */
+        ep->netif = (uint16_t)gnrc_netif_iter(NULL)->pid;
+    }
+    ep->family  = AF_INET6;
+    if (ep->port == 0) {
+        ep->port = COAP_PORT;
+    }
+    return 0;
+}
+
+static void _connect_to_abr(void)
+{
+    gnrc_ipv6_nib_abr_t entry;
+    void * state = NULL;
+
+    if (gnrc_ipv6_nib_abr_iter(&state, &entry)) {
+        sock_udp_ep_t remote;
+
+        if (make_sock_ep(&remote, &entry.addr) < 0) {
+            puts("Could not parse address.");
+        }
+
+        if (cord_ep_register(&remote, 'lowpan0') != CORD_EP_OK) {
+            puts("Registration failed");
+        }
+        else {
+            puts("registration successful\n");
+            cord_ep_dump_status();
+        }
+    }
+}
+
 int main(void)
 {
     puts("Start AIT CoAP Application");
@@ -34,6 +77,7 @@ int main(void)
     cord_ep_standalone_reg_cb(_on_ep_event);
 
     server_init();
+    _connect_to_abr();
 
     puts("Client information:");
     printf("  ep: %s\n", cord_common_get_ep());

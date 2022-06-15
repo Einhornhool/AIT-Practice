@@ -39,7 +39,6 @@ DEVELHELP ?= 1
 QUIET ?= 1
 
 TAP ?= tap0
-# IPV6_PREFIX ?= 2001:db8::/64
 IPV6_PREFIX ?= 2001:67c:254:b0b2:affe:4000:0:1/84
 
 ETHOS_BAUDRATE ?= 115200
@@ -58,12 +57,7 @@ endif
 host-tools:
 	$(Q)env -u CC -u CFLAGS $(MAKE) -C $(RIOTTOOLS)
 
-# define native specific targets to only run UHCP daemon when required
-ifneq (,$(filter native,$(BOARD)))
-ifneq (1,$(USE_DHCPV6))
 .PHONY: uhcpd-daemon
 
 uhcpd-daemon: host-tools
 	$(RIOTTOOLS)/uhcpd/bin/uhcpd $(TAP) $(IPV6_PREFIX) &
-endif
-endif
