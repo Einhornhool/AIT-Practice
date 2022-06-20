@@ -11,8 +11,10 @@ async def request_resources():
     except Exception as e:
         print('Failed to fetch resource:')
         print(e)
-    else:
-        print(f'Result: {response.code}: {response.payload}')
+
+    if response.code.is_successful():
+        payload = response.payload
+        print(f'Result: {payload}')
 
 if __name__ == '__main__':
     asyncio.run(request_resources())
