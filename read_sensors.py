@@ -63,7 +63,9 @@ async def query_accel(addr, protocol):
     request = Message(code=GET, uri=f'{addr}/sensor/acce')
     payload = await get_value(request, protocol)
     if payload != None:
-        return payload.decode()['d']
+        print(f'Payload: {payload.decode()}')                                                   │
+        s = json.dumps(payload.decode())                                                        │
+        return json.loads(s)
 
 async def all_leds_on(addr, leds, protocol):
     for l in leds:
@@ -77,7 +79,6 @@ async def all_leds_of(addr, leds, protocol):
 async def request_resources():
     protocol = await Context.create_client_context()
 
-    print("Request 1")
     request = Message(code=GET, uri='coap://[2001:67c:254:b0b2:affe:45fc:fd31:5fde]/.well-known/core')
     payload = await get_value(request, protocol)
 
@@ -85,7 +86,6 @@ async def request_resources():
         print(f'/.well-ḱnown/core request failed')
         return
 
-    print("Request 2")
     request = Message(code=GET, uri='coap://[2001:67c:254:b0b2:affe:4000:0:1]/endpoint-lookup/')
     payload = await get_value(request, protocol)
 
@@ -97,18 +97,22 @@ async def request_resources():
 
     addr = get_address(payload.decode().split(','))
 
-    print("Request 3")
     sensors = await get_all_sensors(addr, protocol)
 
     for a in sensors.keys():
         await all_leds_on(a, sensors[a]['leds'], protocol)
     # await query_all_sensors(sensors, protocol)
 
+    print("Starting Loop")
     while True:
         for a in sensors.keys():
             acce = await query_accel(a, protocol)
-            if acce[2] < -1:
+            print(f"{acce}")                                                                    │
+            print(type(acce))
+            if acce["d"][2] < -1:
                 await all_leds_of(addr, sensors[a]['leds'], protocol)
+
+    # protocol.shutdown()
 
 if __name__ == '__main__':
     asyncio.run(request_resources())
