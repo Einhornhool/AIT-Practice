@@ -36,7 +36,7 @@ async def request_resources():
         print(f'/endpoint-lookup/ request failed')
         return
 
-    addr = get_address(payload)
+    addr = get_address(str(payload))
 
     request = Message(code=GET, uri='coap://[2001:67c:254:b0b2:affe:4000:0:1]/endpoint-lookup/')
     payload = send_request(request, payload)
