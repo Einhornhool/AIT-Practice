@@ -8,7 +8,7 @@
 #include "net/gnrc/ipv6/nib.h"
 #include "net/gnrc/ipv6/nib/abr.h"
 #include "net/ipv6/addr.h"
-#include "ztimer.h"
+#include "xtimer.h"
 
 #define MAIN_QUEUE_SIZE (4)
 static msg_t _main_msg_queue[MAIN_QUEUE_SIZE];
@@ -82,7 +82,7 @@ static void _connect_to_abr(void)
 int main(void)
 {
     puts("Start AIT CoAP Application");
-    ztimer_sleep(1);
+    xtimer_sleep(1);
 
     /* for the thread running the shell */
     msg_init_queue(_main_msg_queue, MAIN_QUEUE_SIZE);

@@ -17,6 +17,7 @@ USEMODULE += gnrc_ipv6_default
 USEMODULE += gnrc_ipv6_nib_6lbr
 USEMODULE += gnrc_icmpv6_echo
 USEMODULE += cord_ep_standalone
+USEMODULE += xtimer
 
 USEMODULE += saul_default
 
