@@ -24,6 +24,7 @@ async def send_request(request, protocol):
     return None
 
 async def get_all_sensors(addr, protocol):
+    ret = {}
     for a in addr:
         request = Message(code=GET, uri=f'{a}/.well-known/core')
         payload = await send_request(request, protocol)
@@ -33,12 +34,16 @@ async def get_all_sensors(addr, protocol):
 
         sensors = payload.decode().replace('<', '').replace('>', '').split(',')
         print(f'Sensors: {sensors}')
+        ret[a] = sensors
+
 
 async def query_all_sensors(sensors, protocol):
-    for s in sensors:
-        request = Message(code=GET, uri=f'{a}{s}')
-        payload = await send_request(request, protocol)
-        print(f'{s}: {payload}')
+    for addr in sensors.keys:
+        print(f'Address: {addr}')
+        for s in sensors[addr]:
+            request = Message(code=GET, uri=f'{addr}{s}')
+            payload = await send_request(request, protocol)
+            print(f'{s}: {payload}')
 
 async def request_resources():
     protocol = await Context.create_client_context()
