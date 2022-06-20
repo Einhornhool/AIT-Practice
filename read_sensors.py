@@ -12,7 +12,7 @@ def get_address(payload):
                 addr.append(s.split("=")[1].replace('"', ''))
     return addr
 
-async def send_request(request, protocol):
+async def get_value(request, protocol):
     response = None
     try:
         response = await protocol.request(request).response
@@ -24,11 +24,19 @@ async def send_request(request, protocol):
         return response.payload
     return None
 
+async def put_value(val, addr, protocol):
+    payload = bytes(str(val), 'ascii')
+    request = Message(code=PUT, payload=payload, uri=f'{addr}')
+
+    response = await protocol.request(request).response
+    if not response.code.is_successful():
+        print("PUT failed")
+
 async def get_all_sensors(addr, protocol):
     ret = {}
     for a in addr:
         request = Message(code=GET, uri=f'{a}/.well-known/core')
-        payload = await send_request(request, protocol)
+        payload = await get_value(request, protocol)
         if payload == None:
             print(f'Resource request failed')
             return
@@ -48,24 +56,30 @@ async def query_all_sensors(sensors, protocol):
         print(f'Address: {addr}')
         for s in sensors[addr]['sensors']:
             request = Message(code=GET, uri=f'{addr}{s}')
-            payload = await send_request(request, protocol)
+            payload = await get_value(request, protocol)
             print(f'{s}: {payload.decode()}')
 
-async def toggle_leds(addr, leds, protocol):
+async def query_accel(addr, protocol):
+    request = Message(code=GET, uri=f'{addr}/sensor/acce'}')
+    payload = await get_value(request, protocol)
+    if payload != None:
+        return payload.decode()['d']
+
+def all_leds_on(addr, leds, protocol):
     for l in leds:
-        payload = 1
-        request = Message(code=PUT, payload=payload, uri=f'{addr}{l}')
+        put_value(1, f'{addr}{l}', protocol)
 
-        response = await protocol.request(request).response
+def all_leds_of(addr, leds, protocol):
+    for l in leds:
+        put_value(0, f'{addr}{l}', protocol)
 
-        print('Result: %s\n%r'%(response.code, response.payload))
 
 async def request_resources():
     protocol = await Context.create_client_context()
 
     print("Request 1")
     request = Message(code=GET, uri='coap://[2001:67c:254:b0b2:affe:45fc:fd31:5fde]/.well-known/core')
-    payload = await send_request(request, protocol)
+    payload = await get_value(request, protocol)
 
     if payload == None:
         print(f'/.well-ḱnown/core request failed')
@@ -73,7 +87,7 @@ async def request_resources():
 
     print("Request 2")
     request = Message(code=GET, uri='coap://[2001:67c:254:b0b2:affe:4000:0:1]/endpoint-lookup/')
-    payload = await send_request(request, protocol)
+    payload = await get_value(request, protocol)
 
     if payload == None:
         print(f'/endpoint-lookup/ request failed')
@@ -87,8 +101,14 @@ async def request_resources():
     sensors = await get_all_sensors(addr, protocol)
 
     for a in sensors.keys():
-        await toggle_leds(a, sensors[a]['leds'], protocol)
+        await all_leds_on(a, sensors[a]['leds'], protocol)
     # await query_all_sensors(sensors, protocol)
+
+    while True:
+        for a in sensors.keys():
+            acce = query_accel(a, protocol)
+            if acce[2] < -1:
+                all_leds_of(addr, sensors[a]['leds'], protocol)
 
 if __name__ == '__main__':
     asyncio.run(request_resources())
