@@ -1,6 +1,7 @@
 from aiocoap import *
 import asyncio
 import re
+import time
 
 def get_address(payload):
     payload = payload.split(";")
@@ -26,16 +27,18 @@ async def request_resources():
     protocol = await Context.create_client_context()
 
     print("Resquest 1")
-    request = Message(code=GET, uri='coap://[2001:67c:254:b0b2:affe:4000:0:1]/.well-known/core')
+    request = Message(code=GET, uri='coap://[2001:67c:254:b0b2:affe:45fc:fd31:5fde]/.well-known/core')
     payload = await send_request(request, protocol)
 
     if payload == None:
         print(f'/.well-ḱnown/core request failed')
         return
-
+    print(f'{payload}')
     print("Resquest 2")
     request = Message(code=GET, uri='coap://[2001:67c:254:b0b2:affe:4000:0:1]/endpoint-lookup/')
     payload = await send_request(request, payload)
+    time.sleep(1)
+
     if payload == None:
         print(f'/endpoint-lookup/ request failed')
         return
