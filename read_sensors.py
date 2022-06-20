@@ -25,6 +25,7 @@ async def send_request(request, protocol):
 async def request_resources():
     protocol = await Context.create_client_context()
 
+    print("Resquest 1")
     request = Message(code=GET, uri='coap://[2001:67c:254:b0b2:affe:4000:0:1]/.well-known/core')
     payload = await send_request(request, protocol)
 
@@ -32,6 +33,7 @@ async def request_resources():
         print(f'/.well-ḱnown/core request failed')
         return
 
+    print("Resquest 2")
     request = Message(code=GET, uri='coap://[2001:67c:254:b0b2:affe:4000:0:1]/endpoint-lookup/')
     payload = await send_request(request, payload)
     if payload == None:
@@ -43,11 +45,12 @@ async def request_resources():
     addr = get_address(str(payload))
     print(f'Address {addr}')
 
-    request = Message(code=GET, uri=f'{addr}/.well-known/core')
-    payload = await send_request(request, payload)
-    if payload == None:
-        print(f'Resource request failed')
-        return
+    # print("Resquest 2")
+    # request = Message(code=GET, uri=f'{addr}/.well-known/core')
+    # payload = await send_request(request, payload)
+    # if payload == None:
+    #     print(f'Resource request failed')
+    #     return
 
     print(f'Result: {payload}')
 
