@@ -23,7 +23,7 @@ async def send_request(request, protocol):
         return response.payload
     return None
 
-async def query_all_devices(addr, protocol):
+async def get_all_sensors(addr, protocol):
     for a in addr:
         request = Message(code=GET, uri=f'{a}/.well-known/core')
         payload = await send_request(request, protocol)
@@ -31,14 +31,14 @@ async def query_all_devices(addr, protocol):
             print(f'Resource request failed')
             return
 
-        sensors = str(payload).replace('<', '').replace('>', '').split(',')
+        sensors = payload.decode().replace('<', '').replace('>', '').split(',')
         print(f'Sensors: {sensors}')
 
-        for s in sensors:
-            request = Message(code=GET, uri=f'{a}{s}')
-            payload = await send_request(request, protocol)
-            print(f'{s}: {payload}')
-
+async def query_all_sensors(sensors, protocol):
+    for s in sensors:
+        request = Message(code=GET, uri=f'{a}{s}')
+        payload = await send_request(request, protocol)
+        print(f'{s}: {payload}')
 
 async def request_resources():
     protocol = await Context.create_client_context()
@@ -59,12 +59,13 @@ async def request_resources():
         print(f'/endpoint-lookup/ request failed')
         return
 
-    print(f"Payload: {payload}")
+    print(f"Payload: {payload.decode()}")
 
-    addr = get_address(str(payload).split(','))
+    addr = get_address(payload.decode().split(','))
 
     print("Request 3")
-    await query_all_devices(addr, protocol)
+    sensors = await get_all_sensors(addr, protocol)
+    await query_all_sensors(sensors, protocol)
 
 if __name__ == '__main__':
     asyncio.run(request_resources())
