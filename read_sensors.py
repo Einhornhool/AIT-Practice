@@ -23,7 +23,7 @@ async def send_request(request, protocol):
         return response.payload
     return None
 
-async def query_all_devices(addr):
+async def query_all_devices(addr, protocol):
     for a in addr:
         request = Message(code=GET, uri=f'{a}/.well-known/core')
         payload = await send_request(request, protocol)
@@ -64,7 +64,7 @@ async def request_resources():
     addr = get_address(str(payload).split(','))
 
     print("Request 3")
-    query_all_devices(addr)
+    await query_all_devices(addr, protocol)
 
 if __name__ == '__main__':
     asyncio.run(request_resources())
