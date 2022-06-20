@@ -37,7 +37,7 @@ async def request_resources():
     print(f'{payload}')
     print("Resquest 2")
     request = Message(code=GET, uri='coap://[2001:67c:254:b0b2:affe:4000:0:1]/endpoint-lookup/')
-    payload = await send_request(request, payload)
+    payload = await send_request(request, protocol)
     time.sleep(1)
 
     if payload == None:
