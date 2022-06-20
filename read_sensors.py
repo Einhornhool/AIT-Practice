@@ -55,15 +55,10 @@ async def toggle_leds(addr, leds, protocol):
     for l in leds:
         payload = 1
         request = Message(code=PUT, payload=payload, uri=f'addr {l}')
-        try:
-            response = await protocol.request(request).response
-        except Exception as e:
-            print('Failed to fetch resource:')
-            print(e)
 
-        if response.code.is_successful():
-            return response.payload
-        return None
+        response = await protocol.request(request).response
+
+        print('Result: %s\n%r'%(response.code, response.payload))
 
 async def request_resources():
     protocol = await Context.create_client_context()
@@ -92,7 +87,7 @@ async def request_resources():
     sensors = await get_all_sensors(addr, protocol)
 
     for a in sensors.keys():
-        toggle_leds(a, sensors[a]['leds'], protocol)
+        await toggle_leds(a, sensors[a]['leds'], protocol)
     # await query_all_sensors(sensors, protocol)
 
 if __name__ == '__main__':
