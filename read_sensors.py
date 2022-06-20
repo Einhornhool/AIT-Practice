@@ -5,8 +5,8 @@ import re
 def get_address(payload):
     addr = []
     for p in payload:
-        payload = payload.split(";")
-        for s in payload:
+        p = p.split(";")
+        for s in p:
             if re.match("^base", s):
                 addr.append(s.split("=")[1].replace('"', ''))
     return addr
@@ -61,7 +61,7 @@ async def request_resources():
 
     print(f"Payload: {payload}")
 
-    addr = get_address(str(payload.split(',')))
+    addr = get_address(str(payload).split(','))
 
     print("Request 3")
     query_all_devices(addr)
