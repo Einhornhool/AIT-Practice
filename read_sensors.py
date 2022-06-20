@@ -50,7 +50,7 @@ async def request_resources():
 
     print("Resquest 3")
     request = Message(code=GET, uri=f'{addr}/.well-known/core')
-    payload = await send_request(request, payload)
+    payload = await send_request(request, protocol)
     if payload == None:
         print(f'Resource request failed')
         return
