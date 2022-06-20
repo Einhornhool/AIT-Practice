@@ -54,7 +54,7 @@ async def query_all_sensors(sensors, protocol):
 async def toggle_leds(addr, leds, protocol):
     for l in leds:
         payload = 1
-        request = Message(code=PUT, payload=payload, uri=f'addr {l}')
+        request = Message(code=PUT, payload=payload, uri=f'{addr}{l}')
 
         response = await protocol.request(request).response
 
