@@ -39,7 +39,7 @@ async def get_all_sensors(addr, protocol):
     return ret
 
 async def query_all_sensors(sensors, protocol):
-    for addr in sensors.keys:
+    for addr in sensors.keys():
         print(f'Address: {addr}')
         for s in sensors[addr]:
             request = Message(code=GET, uri=f'{addr}{s}')
