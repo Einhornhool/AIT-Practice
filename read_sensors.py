@@ -25,7 +25,7 @@ async def send_request(request, protocol):
 
 async def query_all_devices(addr):
     for a in addr:
-        request = Message(code=GET, uri=f'{addr}/.well-known/core')
+        request = Message(code=GET, uri=f'{a}/.well-known/core')
         payload = await send_request(request, protocol)
         if payload == None:
             print(f'Resource request failed')
@@ -35,7 +35,7 @@ async def query_all_devices(addr):
         print(f'Sensors: {sensors}')
 
         for s in sensors:
-            request = Message(code=GET, uri=f'{addr}{s}')
+            request = Message(code=GET, uri=f'{a}{s}')
             payload = await send_request(request, protocol)
             print(f'{s}: {payload}')
 
