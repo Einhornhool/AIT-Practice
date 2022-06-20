@@ -8,9 +8,7 @@ def get_address(payload):
     for s in payload:
         if re.match("^base", s):
             print(f'String: {s}')
-            split= s.split("=")[1]
-            print(f'String: {split}')
-            return split
+            return s.split("=")[1].replace('"', '')
 
 async def send_request(request, protocol):
     response = None
