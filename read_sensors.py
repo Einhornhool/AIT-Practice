@@ -13,6 +13,7 @@ def get_address(payload):
             return split
 
 async def send_request(request, protocol):
+    response = None
     try:
         response = await protocol.request(request).response
     except Exception as e:
