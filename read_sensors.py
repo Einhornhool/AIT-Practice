@@ -34,17 +34,36 @@ async def get_all_sensors(addr, protocol):
             return
 
         sensors = payload.decode().replace('<', '').replace('>', '').split(',')
-        print(f'Sensors: {sensors}')
-        ret[a] = sensors
+        btn = [s for s in sensors if re.match('^/btn', s)]
+        leds = [s for s in sensors if re.match('^/led', s)]
+        sens = [s for s in sensors if re.match('^/sensor', s)]
+        ret[a] = {
+            'btn' : btn,
+            'leds' : leds,
+            'sensors' : sens}
     return ret
 
 async def query_all_sensors(sensors, protocol):
     for addr in sensors.keys():
         print(f'Address: {addr}')
-        for s in sensors[addr]:
+        for s in sensors[addr]['sensors']:
             request = Message(code=GET, uri=f'{addr}{s}')
             payload = await send_request(request, protocol)
             print(f'{s}: {payload.decode()}')
+
+async def toggle_leds(addr, leds, protocol):
+    for l in leds:
+        payload = 1
+        request = Message(code=PUT, payload=payload, uri=f'addr {l}')
+        try:
+            response = await protocol.request(request).response
+        except Exception as e:
+            print('Failed to fetch resource:')
+            print(e)
+
+        if response.code.is_successful():
+            return response.payload
+        return None
 
 async def request_resources():
     protocol = await Context.create_client_context()
@@ -65,13 +84,16 @@ async def request_resources():
         print(f'/endpoint-lookup/ request failed')
         return
 
-    print(f"Payload: {payload.decode()}")
+    # print(f"Payload: {payload.decode()}")
 
     addr = get_address(payload.decode().split(','))
 
     print("Request 3")
     sensors = await get_all_sensors(addr, protocol)
-    await query_all_sensors(sensors, protocol)
+
+    for a in sensors.keys():
+        toggle_leds(a, sensors[a]['leds'], protocol)
+    # await query_all_sensors(sensors, protocol)
 
 if __name__ == '__main__':
     asyncio.run(request_resources())
