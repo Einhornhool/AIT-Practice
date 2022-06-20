@@ -1,6 +1,7 @@
 from aiocoap import *
 import asyncio
 import re
+import json
 
 def get_address(payload):
     addr = []
@@ -35,7 +36,7 @@ async def get_all_sensors(addr, protocol):
         sensors = payload.decode().replace('<', '').replace('>', '').split(',')
         print(f'Sensors: {sensors}')
         ret[a] = sensors
-
+    return ret
 
 async def query_all_sensors(sensors, protocol):
     for addr in sensors.keys:
@@ -43,7 +44,7 @@ async def query_all_sensors(sensors, protocol):
         for s in sensors[addr]:
             request = Message(code=GET, uri=f'{addr}{s}')
             payload = await send_request(request, protocol)
-            print(f'{s}: {payload}')
+            print(f'{s}: {payload.decode()}')
 
 async def request_resources():
     protocol = await Context.create_client_context()
