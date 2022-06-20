@@ -7,7 +7,6 @@ def get_address(payload):
     payload = payload.split(";")
     for s in payload:
         if re.match("^base", s):
-            print(f'String: {s}')
             return s.split("=")[1].replace('"', '')
 
 async def send_request(request, protocol):
@@ -44,17 +43,21 @@ async def request_resources():
     print(f"Payload: {payload}")
 
     addr = get_address(str(payload))
-    uri = f'{addr}/.well-known/core'
-    print(f'Address {uri}')
 
     print("Request 3")
-    request = Message(code=GET, uri=uri)
+    request = Message(code=GET, uri=f'{addr}/.well-known/core')
     payload = await send_request(request, protocol)
     if payload == None:
         print(f'Resource request failed')
         return
 
-    print(f'Result: {payload}')
+    sensors = str(payload).replace('<', '').replace('>', '').split(',')
+    print(f'Sensors: {sensors}')
+
+    for s in sensors:
+        request = Message(code=GET, uri=f'{addr}{s}')
+        payload = await send_request(request, protocol)
+        print(f'{s}: {payload}')
 
 if __name__ == '__main__':
     asyncio.run(request_resources())
