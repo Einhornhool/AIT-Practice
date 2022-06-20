@@ -2,6 +2,12 @@ from aiocoap import *
 import asyncio
 import re
 
+def get_address(payload):
+    payload = payload.split(";")
+    for s in payload:
+        if re.match("^base", s):
+            return s.split("=")[1]
+
 async def send_request(request, protocol):
     try:
         response = await protocol.request(request).response
@@ -11,14 +17,7 @@ async def send_request(request, protocol):
 
     if response.code.is_successful():
         return response.payload
-
     return None
-
-def get_address(payload):
-    payload = payload.split(";")
-    for s in payload:
-        if re.match("^base", s):
-            return s.split("=")[1]
 
 async def request_resources():
     protocol = await Context.create_client_context()
@@ -37,8 +36,9 @@ async def request_resources():
         return
 
     addr = get_address(str(payload))
+    print(f'Address {addr}')
 
-    request = Message(code=GET, uri='coap://[2001:67c:254:b0b2:affe:4000:0:1]/endpoint-lookup/')
+    request = Message(code=GET, uri=addr)
     payload = send_request(request, payload)
     if payload == None:
         print(f'Resource request failed')
