@@ -6,7 +6,10 @@ def get_address(payload):
     payload = payload.split(";")
     for s in payload:
         if re.match("^base", s):
-            return s.split("=")[1]
+            print(f'String: {s}')
+            split= s.split("=")[1]
+            print(f'String: {split}')
+            return split
 
 async def send_request(request, protocol):
     try:
@@ -34,6 +37,8 @@ async def request_resources():
     if payload == None:
         print(f'/endpoint-lookup/ request failed')
         return
+
+    print(f"Payload: {payload}")
 
     addr = get_address(str(payload))
     print(f'Address {addr}')
