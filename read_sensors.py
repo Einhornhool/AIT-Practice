@@ -60,18 +60,18 @@ async def query_all_sensors(sensors, protocol):
             print(f'{s}: {payload.decode()}')
 
 async def query_accel(addr, protocol):
-    request = Message(code=GET, uri=f'{addr}/sensor/acce'}')
+    request = Message(code=GET, uri=f'{addr}/sensor/acce')
     payload = await get_value(request, protocol)
     if payload != None:
         return payload.decode()['d']
 
-def all_leds_on(addr, leds, protocol):
+async def all_leds_on(addr, leds, protocol):
     for l in leds:
-        put_value(1, f'{addr}{l}', protocol)
+        await put_value(1, f'{addr}{l}', protocol)
 
-def all_leds_of(addr, leds, protocol):
+async def all_leds_of(addr, leds, protocol):
     for l in leds:
-        put_value(0, f'{addr}{l}', protocol)
+        await put_value(0, f'{addr}{l}', protocol)
 
 
 async def request_resources():
@@ -106,9 +106,9 @@ async def request_resources():
 
     while True:
         for a in sensors.keys():
-            acce = query_accel(a, protocol)
+            acce = await query_accel(a, protocol)
             if acce[2] < -1:
-                all_leds_of(addr, sensors[a]['leds'], protocol)
+                await all_leds_of(addr, sensors[a]['leds'], protocol)
 
 if __name__ == '__main__':
     asyncio.run(request_resources())
