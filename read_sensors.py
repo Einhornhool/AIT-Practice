@@ -13,8 +13,8 @@ async def request_resources():
         print(e)
 
     if response.code.is_successful():
-        payload = response.payload
-        print(f'Result: {payload}')
+        payload = str(response.payload)
+        print(f'Result: {payload.split(",")}')
 
 if __name__ == '__main__':
     asyncio.run(request_resources())
