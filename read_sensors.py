@@ -1,3 +1,4 @@
+from tkinter import W
 from aiocoap import *
 import asyncio
 import json
@@ -46,8 +47,7 @@ async def query_accel(addr, protocol):
     request = Message(code=GET, uri=f'{addr}/sensor/acce')
     payload = await get_value(request, protocol)
     if payload != None:
-        s = json.dumps(payload.decode())
-        return json.loads(s)
+        return json.loads(payload.decode().replace('\x00', ''))
 
 async def all_leds_on(addr, leds, protocol):
     for l in leds:
@@ -80,7 +80,6 @@ async def request_resources():
 
     for a in resources.keys():
         await all_leds_on(a, resources[a]['led'], protocol)
-    # await query_all_sensors(sensors, protocol)
 
     print("Starting Loop")
     while True:
