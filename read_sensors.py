@@ -4,13 +4,15 @@ import re
 import json
 
 def get_addresses_and_resources(payload):
-    addr = []
+    d = {}
+    payload = payload.decode().replace('<', '').replace('>', '').split(',')
     for p in payload:
-        p = p.split(";")
-        for s in p:
-            if re.match("^base", s):
-                addr.append(s.split("=")[1].replace('"', ''))
-    return addr
+        p = p.split("]")
+        addr = f'{p[0]}]'
+        d[addr] = {'btn' : [], 'led' : [], 'sensor' : []}
+        t = payload.split('/')[0]
+        d[addr][t].append(p[1])
+    return d
 
 async def get_value(request, protocol):
     response = None
@@ -63,8 +65,8 @@ async def query_accel(addr, protocol):
     request = Message(code=GET, uri=f'{addr}/sensor/acce')
     payload = await get_value(request, protocol)
     if payload != None:
-        print(f'Payload: {payload.decode()}')                                                   │
-        s = json.dumps(payload.decode())                                                        │
+        print(f'Payload: {payload.decode()}')
+        s = json.dumps(payload.decode())
         return json.loads(s)
 
 async def all_leds_on(addr, leds, protocol):
@@ -93,9 +95,8 @@ async def request_resources():
         print(f'/resource-lookup/ request failed')
         return
 
-    print(f"Payload: {payload.decode()}")
-
-    # addr = get_addresses_and_resources(payload.decode().split(','))
+    resources = get_addresses_and_resources(payload)
+    print(f"Resources: {resources}")
 
     # sensors = await get_all_sensors(addr, protocol)
 
