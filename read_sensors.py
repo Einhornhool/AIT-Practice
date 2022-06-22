@@ -3,7 +3,7 @@ import asyncio
 import re
 import json
 
-def get_address(payload):
+def get_addresses_and_resources(payload):
     addr = []
     for p in payload:
         p = p.split(";")
@@ -86,31 +86,31 @@ async def request_resources():
         print(f'/.well-ḱnown/core request failed')
         return
 
-    request = Message(code=GET, uri='coap://[2001:67c:254:b0b2:affe:4000:0:1]/endpoint-lookup/')
+    request = Message(code=GET, uri='coap://[2001:67c:254:b0b2:affe:4000:0:1]/resource-lookup/')
     payload = await get_value(request, protocol)
 
     if payload == None:
-        print(f'/endpoint-lookup/ request failed')
+        print(f'/resource-lookup/ request failed')
         return
 
-    # print(f"Payload: {payload.decode()}")
+    print(f"Payload: {payload.decode()}")
 
-    addr = get_address(payload.decode().split(','))
+    # addr = get_addresses_and_resources(payload.decode().split(','))
 
-    sensors = await get_all_sensors(addr, protocol)
+    # sensors = await get_all_sensors(addr, protocol)
 
-    for a in sensors.keys():
-        await all_leds_on(a, sensors[a]['leds'], protocol)
-    # await query_all_sensors(sensors, protocol)
+    # for a in sensors.keys():
+    #     await all_leds_on(a, sensors[a]['leds'], protocol)
+    # # await query_all_sensors(sensors, protocol)
 
-    print("Starting Loop")
-    while True:
-        for a in sensors.keys():
-            acce = await query_accel(a, protocol)
-            print(f"{acce}")                                                                    │
-            print(type(acce))
-            if acce["d"][2] < -1:
-                await all_leds_of(addr, sensors[a]['leds'], protocol)
+    # print("Starting Loop")
+    # while True:
+    #     for a in sensors.keys():
+    #         acce = await query_accel(a, protocol)
+    #         print(f"{acce}")                                                                    │
+    #         print(type(acce))
+    #         if acce["d"][2] < -1:
+    #             await all_leds_of(addr, sensors[a]['leds'], protocol)
 
     # protocol.shutdown()
 
