@@ -35,25 +35,6 @@ async def put_value(val, addr, protocol):
     if not response.code.is_successful():
         print("PUT failed")
 
-async def get_all_sensors(addr, protocol):
-    ret = {}
-    for a in addr:
-        request = Message(code=GET, uri=f'{a}/.well-known/core')
-        payload = await get_value(request, protocol)
-        if payload == None:
-            print(f'Resource request failed')
-            return
-
-        sensors = payload.decode().replace('<', '').replace('>', '').split(',')
-        btn = [s for s in sensors if re.match('^/btn', s)]
-        leds = [s for s in sensors if re.match('^/led', s)]
-        sens = [s for s in sensors if re.match('^/sensor', s)]
-        ret[a] = {
-            'btn' : btn,
-            'leds' : leds,
-            'sensors' : sens}
-    return ret
-
 async def query_all_sensors(sensors, protocol):
     for addr in sensors.keys():
         print(f'Address: {addr}')
@@ -99,20 +80,18 @@ async def request_resources():
     resources = get_addresses_and_resources(payload)
     print(f"Resources: {resources}")
 
-    # sensors = await get_all_sensors(addr, protocol)
-
     # for a in sensors.keys():
     #     await all_leds_on(a, sensors[a]['leds'], protocol)
     # # await query_all_sensors(sensors, protocol)
 
-    # print("Starting Loop")
-    # while True:
-    #     for a in sensors.keys():
-    #         acce = await query_accel(a, protocol)
-    #         print(f"{acce}")                                                                    │
-    #         print(type(acce))
-    #         if acce["d"][2] < -1:
-    #             await all_leds_of(addr, sensors[a]['leds'], protocol)
+    print("Starting Loop")
+    while True:
+        for a in resources.keys():
+            acce = await query_accel(a, protocol)
+            print(f"{acce}")                                                                    │
+            print(type(acce))
+            if acce["d"][2] < -1:
+                await all_leds_of(a, resources[a]['leds'], protocol)
 
     # protocol.shutdown()
 
