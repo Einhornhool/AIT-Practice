@@ -78,9 +78,9 @@ async def request_resources():
     resources = get_addresses_and_resources(payload)
     print(f"Resources: {resources}")
 
-    # for a in sensors.keys():
-    #     await all_leds_on(a, sensors[a]['leds'], protocol)
-    # # await query_all_sensors(sensors, protocol)
+    for a in resources.keys():
+        await all_leds_on(a, resources[a]['led'], protocol)
+    # await query_all_sensors(sensors, protocol)
 
     print("Starting Loop")
     while True:
@@ -89,7 +89,7 @@ async def request_resources():
             print(f"{acce}")
             print(type(acce))
             if acce["d"][2] < -1:
-                await all_leds_of(a, resources[a]['leds'], protocol)
+                await all_leds_of(a, resources[a]['led'], protocol)
 
     # protocol.shutdown()
 
