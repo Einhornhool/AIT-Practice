@@ -114,7 +114,7 @@ static void _write(int num, char *val, size_t len)
     }
 
     for (size_t i = 0; i < len; i++) {
-        data.val[i] = val[i];
+        data.val[i] = atoi(&val[i]);
     }
 
     dim = saul_reg_write(dev, &data);

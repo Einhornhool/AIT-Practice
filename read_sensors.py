@@ -1,6 +1,5 @@
 from aiocoap import *
 import asyncio
-import re
 import json
 
 def get_addresses_and_resources(payload):
@@ -47,7 +46,6 @@ async def query_accel(addr, protocol):
     request = Message(code=GET, uri=f'{addr}/sensor/acce')
     payload = await get_value(request, protocol)
     if payload != None:
-        print(f'Payload: {payload.decode()}')
         s = json.dumps(payload.decode())
         return json.loads(s)
 
@@ -88,7 +86,7 @@ async def request_resources():
     while True:
         for a in resources.keys():
             acce = await query_accel(a, protocol)
-            print(f"{acce}")                                                                    │
+            print(f"{acce}")
             print(type(acce))
             if acce["d"][2] < -1:
                 await all_leds_of(a, resources[a]['leds'], protocol)
