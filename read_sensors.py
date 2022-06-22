@@ -9,8 +9,9 @@ def get_addresses_and_resources(payload):
     for p in payload:
         p = p.split("]")
         addr = f'{p[0]}]'
-        d[addr] = {'btn' : [], 'led' : [], 'sensor' : []}
-        t = payload.split('/')[0]
+        if addr not in d.keys():
+            d[addr] = {'btn' : [], 'led' : [], 'sensor' : []}
+        t = p[1].split('/')[1]
         d[addr][t].append(p[1])
     return d
 
