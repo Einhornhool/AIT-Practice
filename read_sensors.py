@@ -36,11 +36,10 @@ async def put_value(val, addr, protocol):
 
 async def query_all_sensors(sensors, protocol):
     for addr in sensors.keys():
-        print(f'Address: {addr}')
         for s in sensors[addr]['sensors']:
             request = Message(code=GET, uri=f'{addr}{s}')
             payload = await get_value(request, protocol)
-            print(f'{s}: {payload.decode()}')
+            return json.loads(payload.decode().replace('\x00', ''))
 
 async def query_accel(addr, protocol):
     request = Message(code=GET, uri=f'{addr}/sensor/acce')
@@ -82,12 +81,19 @@ async def request_resources():
 
     print("Starting Loop")
     while True:
+        down = 0
         for a in resources.keys():
             acce = await query_accel(a, protocol)
-            print(f"{acce}")
-            print(type(acce))
-            if acce["d"][2] < -1:
+            if acce["d"][2] < -0.8:
+                down = 1
+
+        if down == 1:
+            for a in resources.keys():
                 await all_leds_of(a, resources[a]['led'], protocol)
+        else:
+            for a in resources.keys():
+                await all_leds_on(a, resources[a]['led'], protocol)
+
 
     # protocol.shutdown()
 
