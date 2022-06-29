@@ -1,6 +1,7 @@
 from aiocoap import *
 import asyncio
 import json
+import re
 
 def get_addresses_and_resources(payload):
     d = {}
@@ -10,8 +11,13 @@ def get_addresses_and_resources(payload):
         addr = f'{p[0]}]'
         if addr not in d.keys():
             d[addr] = {'btn' : [], 'led' : [], 'sensor' : []}
-        t = p[1].split('/')[1]
-        d[addr][t].append(p[1])
+        t = p[1].split('/')[2]
+        if re.match('BTN', t):
+            d[addr]['btn'].append(p[1])
+        elif re.match('^ACT', t):
+            d[addr]['led'].append(p[1])
+        else:
+            d[addr]['sensor'].append(p[1])
     return d
 
 async def get_value(request, protocol):
@@ -73,6 +79,7 @@ async def request_resources():
         print(f'/resource-lookup/ request failed')
         return
 
+    print(payload.decode())
     resources = get_addresses_and_resources(payload)
     print(f"Resources: {resources}")
 

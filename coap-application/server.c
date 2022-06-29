@@ -102,7 +102,7 @@ static ssize_t _saul_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, void *
             size_t resp_len = coap_opt_finish(pdu, COAP_OPT_FINISH_PAYLOAD);
             /* TODO: Read Saul LED value and write into payload buffer */
             char led_value[64] = {0};
-            size_t length;
+            size_t length = 0;
             _probe((*(int *) ctx), led_value, &length);
             memcpy((char *)pdu->payload, led_value, length);
             resp_len += length;
