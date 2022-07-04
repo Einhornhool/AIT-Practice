@@ -33,7 +33,7 @@ static void _probe(saul_reg_t * dev, char * val, size_t * len)
 
     dim = saul_reg_read(dev, &res);
     if (dim <= 0) {
-        printf("error: failed to read from device #%i\n", num);
+        puts("error: failed to read from device");
         return;
     }
 
@@ -52,10 +52,10 @@ static void _write(saul_reg_t * dev, char *val, size_t len)
     dim = saul_reg_write(dev, &data);
     if (dim <= 0) {
         if (dim == -ENOTSUP) {
-            printf("error: device #%i is not writable\n", num);
+            puts("error: device is not writable\n");
         }
         else {
-            printf("error: failure to write to device #%i\n", num);
+            puts("error: failure to write to device\n");
         }
         return;
     }
