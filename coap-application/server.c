@@ -12,8 +12,6 @@
 #define GCOAP_PATH_LEN 32
 
 static ssize_t _saul_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, void * ctx);
-// static ssize_t _sensor_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, void * ctx);
-// static ssize_t _led_btn_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, void * ctx);
 
 saul_reg_t * available_devs;
 static coap_resource_t _resources[GCOAP_RES_MAX];
@@ -35,7 +33,7 @@ static void _probe(int num, char * val, size_t * len)
 
     saul_reg_t * dev = saul_reg_find_nth(num);
     if (dev == NULL) {
-        puts("error: undefined device id given");
+        printf("error: undefined device id given: %d", num);
         return;
     }
 
@@ -75,21 +73,6 @@ static void _write(int num, char *val, size_t len)
     }
 }
 
-// static ssize_t _sensor_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, void * ctx)
-// {
-//     char sensor_value[64];
-//     size_t length = 0;
-//     _probe((*(int *) ctx), sensor_value, &length);
-
-//     gcoap_resp_init(pdu, buf, len, COAP_CODE_CONTENT);
-//     coap_opt_add_format(pdu, COAP_FORMAT_TEXT);
-//     size_t resp_len = coap_opt_finish(pdu, COAP_OPT_FINISH_PAYLOAD);
-
-//     memcpy((char *)pdu->payload, sensor_value, length);
-//     resp_len += length;
-//     return resp_len;
-// }
-
 static ssize_t _saul_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, void * ctx)
 {
     /* read coap method type in packet */
@@ -103,7 +86,7 @@ static ssize_t _saul_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, void *
             /* TODO: Read Saul LED value and write into payload buffer */
             char led_value[64] = {0};
             size_t length = 0;
-            _probe((*(int *) ctx), led_value, &length);
+            _probe((int *) ctx, led_value, &length);
             memcpy((char *)pdu->payload, led_value, length);
             resp_len += length;
             return resp_len;
@@ -111,7 +94,7 @@ static ssize_t _saul_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, void *
             if (pdu->payload_len <= 5) {
                 char payload[6] = { 0 };
                 memcpy(payload, (char *)pdu->payload, pdu->payload_len);
-                _write(*((int *) ctx), payload, pdu->payload_len);
+                _write((int *) ctx, payload, pdu->payload_len);
                 return gcoap_response(pdu, buf, len, COAP_CODE_CHANGED);
             }
             else {
@@ -121,38 +104,6 @@ static ssize_t _saul_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, void *
 
     return 0;
 }
-
-// static ssize_t _led_btn_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, void * ctx)
-// {
-//     /* read coap method type in packet */
-//     unsigned method_flag = coap_method2flag(coap_get_code_detail(pdu));
-
-//     switch(method_flag) {
-//         case COAP_GET:
-//             gcoap_resp_init(pdu, buf, len, COAP_CODE_CONTENT);
-//             coap_opt_add_format(pdu, COAP_FORMAT_TEXT);
-//             size_t resp_len = coap_opt_finish(pdu, COAP_OPT_FINISH_PAYLOAD);
-//             /* TODO: Read Saul LED value and write into payload buffer */
-//             char led_value[64] = {0};
-//             size_t length;
-//             _probe((*(int *) ctx), led_value, &length);
-//             memcpy((char *)pdu->payload, led_value, length);
-//             resp_len += length;
-//             return resp_len;
-//         case COAP_PUT:
-//             if (pdu->payload_len <= 5) {
-//                 char payload[6] = { 0 };
-//                 memcpy(payload, (char *)pdu->payload, pdu->payload_len);
-//                 _write(*((int *) ctx), payload, pdu->payload_len);
-//                 return gcoap_response(pdu, buf, len, COAP_CODE_CHANGED);
-//             }
-//             else {
-//                 return gcoap_response(pdu, buf, len, COAP_CODE_BAD_REQUEST);
-//             }
-//     }
-
-//     return 0;
-// }
 
 static void _generate_path(char *buffer, int id, saul_reg_t *reg)
 {
