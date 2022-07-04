@@ -26,16 +26,10 @@ static gcoap_listener_t _listener = {
     NULL
 };
 
-static void _probe(int num, char * val, size_t * len)
+static void _probe(saul_reg_t * dev, char * val, size_t * len)
 {
     size_t dim;
     phydat_t res;
-
-    saul_reg_t * dev = saul_reg_find_nth(num);
-    if (dev == NULL) {
-        printf("error: undefined device id given: %d", num);
-        return;
-    }
 
     dim = saul_reg_read(dev, &res);
     if (dim <= 0) {
@@ -46,16 +40,10 @@ static void _probe(int num, char * val, size_t * len)
     *len = phydat_to_json(&res, dim, val);
 }
 
-static void _write(int num, char *val, size_t len)
+static void _write(saul_reg_t * dev, char *val, size_t len)
 {
     int dim;
     phydat_t data;
-
-    saul_reg_t * dev = saul_reg_find_nth(num);
-    if (dev == NULL) {
-        puts("error: undefined device id given");
-        return;
-    }
 
     for (size_t i = 0; i < len; i++) {
         data.val[i] = atoi(&val[i]);
@@ -86,7 +74,7 @@ static ssize_t _saul_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, void *
             /* TODO: Read Saul LED value and write into payload buffer */
             char led_value[64] = {0};
             size_t length = 0;
-            _probe((int *) ctx, led_value, &length);
+            _probe((saul_reg_t *) ctx, led_value, &length);
             memcpy((char *)pdu->payload, led_value, length);
             resp_len += length;
             return resp_len;
@@ -94,7 +82,7 @@ static ssize_t _saul_handler(coap_pkt_t * pdu, uint8_t * buf, size_t len, void *
             if (pdu->payload_len <= 5) {
                 char payload[6] = { 0 };
                 memcpy(payload, (char *)pdu->payload, pdu->payload_len);
-                _write((int *) ctx, payload, pdu->payload_len);
+                _write((saul_reg_t *) ctx, payload, pdu->payload_len);
                 return gcoap_response(pdu, buf, len, COAP_CODE_CHANGED);
             }
             else {
