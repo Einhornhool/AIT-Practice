@@ -40,21 +40,21 @@ async def get_addr(protocol):
 
 async def get_sensors(protocol, addr_mc):
     response = await protocol.request(Message(code=GET, uri=addr_mc + "/.well-known/core")).response
-    print("response: {}". format(response.payload))
+    # print("response: {}". format(response.payload))
 
     sensor_list = str(response.payload)[2:]
     sensor_array = []
     for s in sensor_list.split(","):
         s_repl = s.replace("<", "").replace(">", "").replace("'", "")
         sensor_array.append(s_repl)
-        print(s_repl)
+        # print(s_repl)
 
     return sensor_array
 
 
 async def read_sensor(protocol, addr, sensor):
     response = await protocol.request(Message(code=GET, uri=addr + sensor)).response
-    print("sensor: " + sensor + " --- response: {}". format(response.payload))
+    # print("sensor: " + sensor + " --- response: {}". format(response.payload))
     return response.payload
 
 
@@ -76,7 +76,7 @@ async def tictactoe(protocol, addr_mc):
         screen.addstr(0, 0, playing_field)
         screen.addstr(7, 0, f'Player: {p}')
 
-        c_loc = await cursor_loc(protocol, addr_mc)
+        c_loc = await cursor_loc(protocol, addr_mc, screen)
         screen.move(field_pos[c_loc][1], field_pos[c_loc][0])
 
         if ttt_ar[int(c_loc[:1])][int(c_loc[1:])] == '':
@@ -117,7 +117,7 @@ async def ttt_end(ar, p):
 
     return 0
 
-async def cursor_loc(protocol, addr_mc):
+async def cursor_loc(protocol, addr_mc, screen):
 
     # 0,0,1 = normalzustand
     # 0,0,-1 = umgedreht
@@ -131,13 +131,13 @@ async def cursor_loc(protocol, addr_mc):
 
     while dir == 0:
 
-        print('cur_loc =', cur_loc)
-        print('READ IN...')
-        print('3')
+        # print('cur_loc =', cur_loc)
+        screen.addstr(9, 0, 'READ IN...')
+        screen.addstr(9, 0, '3')
         await asyncio.sleep(1)
-        print('2')
+        screen.addstr(9, 0, '2')
         await asyncio.sleep(1)
-        print('1')
+        screen.addstr(9, 0, '1')
         await asyncio.sleep(1)
 
         read = await read_sensor(protocol, addr_mc, '/saul/mma8x5x/SENSE_ACCEL')
@@ -145,11 +145,11 @@ async def cursor_loc(protocol, addr_mc):
 
         read = read[read.find('"d":')+5 : read.find(']')]
 
-        print('READ SUCCESSFUL:', read)
+        # print('READ SUCCESSFUL:', read)
 
         x,y,z = read.split(',')
 
-        print('x:', x, '; y:', y, '; z:', z)
+        # print('x:', x, '; y:', y, '; z:', z)
 
         x = float(x)
         y = float(y)
@@ -157,7 +157,7 @@ async def cursor_loc(protocol, addr_mc):
 
         # Normalzustand
         if x < 0.5 and y < 0.5 and z > 0.5:
-            print('No Direction!')
+            # print('No Direction!')
 
         # Links
         if x < 0.5 and y > 0.5 and z < 0.5:
@@ -201,7 +201,7 @@ async def main():
     protocol = await Context.create_client_context()
 
     addr_mc_ar = await get_addr(protocol)
-    print(addr_mc_ar)
+    # print(addr_mc_ar)
 
     addr_mc = addr_mc_ar[0]
 
