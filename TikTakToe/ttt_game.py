@@ -157,7 +157,7 @@ async def cursor_loc(protocol, addr_mc, screen):
 
         # Normalzustand
         if x < 0.5 and y < 0.5 and z > 0.5:
-            # print('No Direction!')
+            screen.addstr(9, 0, 'No Direction!')
 
         # Links
         if x < 0.5 and y > 0.5 and z < 0.5:
