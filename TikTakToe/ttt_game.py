@@ -180,6 +180,9 @@ async def tictactoe(protocol, mc_p1, mc_p2, screen):
         else:
             screen.addstr(11, 0, 'ACTION NOT ALLOWED!')
 
+    for k in field_pos.keys():
+        screen.addstr(field_pos[k][0], field_pos[k][1], f'{ttt_ar[int(k[0])][int(k[1])]}')
+
     if end == 1:
         screen.addstr(9, 0, 'Player 1 wins!    ')
     elif end == 2:
