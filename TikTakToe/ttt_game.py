@@ -1,31 +1,13 @@
-# from asciimatics.screen import Screen, ManagedScreen
-# from time import sleep
-
-# class TestScreen(Screen):
-#     def __init__(self):
-#         super(TestScreen, self).__init__()
-
-# def demo(screen: Screen=None):
-#     screen.print_at('Hello World', 0, 0)
-#     screen.refresh()
-#     sleep(5)
-
-# TestScreen.wrapper(demo)
-
 import curses
 from time import sleep
 from aiocoap import *
 import asyncio
 from curses import wrapper
-import ttt_game
+#import ttt_sc_test
 
 ttt_ar = [  ['','',''],
             ['','',''],
             ['','','']]
-
-# curser_loc = '00'
-
-# player = 1
 
 cur_loc = '00'
 
@@ -51,29 +33,22 @@ field_pos = {   '00': (2, 6),
 }
 async def cursor_loc(protocol, addr_mc, screen, player):
 
-    # 0,0,1 = normalzustand
-    # 0,0,-1 = umgedreht
-    # 0,1,0 = 90° links
-    # 0,-1,0 = 90° rechts
-    # -1,0,0 = 90° vorne
-    # 1,0,0 = 90° hinten
-
-    dir = 0
     cur_loc = '00'
-    direction = 'No Direction'
+    direction = '             '
 
-    while dir == 0:
-        screen.move(10, 0)
-        screen.clrtoeol()
-        screen.move(9, 0)
-        screen.clrtoeol()
-
+    while True:
+        # update screen
         screen.addstr(0, 0, playing_field)
         screen.addstr(8, 0, f'Player: {player}')
         screen.addstr(10, 0, f'Direction: {direction}')
+        #screen.addstr(20, 0, f'ttt_ar: {ttt_ar}')
         screen.move(field_pos[cur_loc][0], field_pos[cur_loc][1])
 
-        # print('cur_loc =', cur_loc)
+        # set X and O
+        for k in field_pos.keys():
+            screen.addstr(field_pos[k][0], field_pos[k][1], f'{ttt_ar[int(k[0])][int(k[1])]}')
+
+        # 3, 2, 1 - Counter
         screen.addstr(9, 0, 'READ IN...')
         screen.addstr(9, 12, '3')
         screen.move(field_pos[cur_loc][0], field_pos[cur_loc][1])
@@ -88,20 +63,24 @@ async def cursor_loc(protocol, addr_mc, screen, player):
         screen.refresh()
         await asyncio.sleep(1)
 
+        # read sensor
         read = await read_sensor(protocol, addr_mc, '/saul/mma8x5x/SENSE_ACCEL')
         read = str(read)
 
         read = read[read.find('"d":')+5 : read.find(']')]
 
-        # print('READ SUCCESSFUL:', read)
-
         x,y,z = read.split(',')
-
-        # print('x:', x, '; y:', y, '; z:', z)
 
         x = float(x)
         y = float(y)
         z = float(z)
+
+        # 0,0,1 = normalzustand
+        # 0,0,-1 = umgedreht
+        # 0,1,0 = 90° links
+        # 0,-1,0 = 90° rechts
+        # -1,0,0 = 90° vorne
+        # 1,0,0 = 90° hinten
 
         # Normalzustand
         if x < 0.5 and y < 0.5 and z > 0.5:
@@ -110,26 +89,33 @@ async def cursor_loc(protocol, addr_mc, screen, player):
         # Links
         if x < 0.5 and y > 0.5 and z < 0.5:
             cur_loc = add_dir(cur_loc, 1)
-            direction = 'Left!'
+            direction = 'Left!        '
 
         # Rechts
         if x < 0.5 and y < -0.5 and z < 0.5:
             cur_loc = add_dir(cur_loc, 2)
-            direction = 'Right!'
+            direction = 'Right!       '
 
         # Oben
         if x > 0.5 and y < 0.5 and z < 0.5:
             cur_loc = add_dir(cur_loc, 3)
-            direction = 'Up!'
+            direction = 'Up!          '
 
         # Unten
         if x < -0.5 and y < 0.5 and z < 0.5:
             cur_loc = add_dir(cur_loc, 4)
-            direction = 'Down!'
+            direction = 'Down!        '
+
+        # set direction and clear 'Action not allowed!'
+        screen.addstr(11, 0, '                   ')
         screen.refresh()
 
+        # while-escape
         # Umgedreht
         if x < 0.5 and y < 0.5 and z < -0.5:
+            direction = 'Click!       '
+            screen.addstr(10, 0, f'Direction: {direction}')
+            screen.refresh()
             return cur_loc
 
 def add_dir(cur_loc, dir):
@@ -168,46 +154,40 @@ async def ttt_end(ar, p):
 
     return 0
 
-async def tictactoe(protocol, addr_mc, screen):
+async def tictactoe(protocol, mc_p1, mc_p2, screen):
     end = 0
     p = 1
-    sym = 'X' if p == 1 else 'O'
+    sym = 'X'
+    active_mc = mc_p1
 
     while end == 0:
-        screen.addstr(0, 0, playing_field)
 
-        for k in field_pos.keys():
-            screen.addstr(field_pos[k][0], field_pos[k][1], f'{ttt_ar[int(k[0])][int(k[1])]}')
-
-        screen.move(field_pos[cur_loc][0], field_pos[cur_loc][1])
-        screen.addstr(8, 0, f'Player: {p}')
-        screen.refresh()
-
-        set_loc = '00'
-        set_loc = await cursor_loc(protocol, addr_mc, screen, p)
+        set_loc = await cursor_loc(protocol, active_mc, screen, p)
 
         if ttt_ar[int(set_loc[:1])][int(set_loc[1:])] == '':
             ttt_ar[int(set_loc[:1])][int(set_loc[1:])] = sym
             end = await ttt_end(ttt_ar, p)
-            screen.addstr(21, 0, f'End {end}')
-            screen.refresh()
-            await asyncio.sleep(3)
             if p == 1:
                 p = 2
+                sym = 'O'
+                active_mc = mc_p2
+
             else:
                 p = 1
+                sym = 'X'
+                active_mc = mc_p1
+
         else:
             screen.addstr(11, 0, 'ACTION NOT ALLOWED!')
-            await asyncio.sleep(3)
-        screen.refresh()
 
     if end == 1:
-        screen.addstr(9, 0, 'Player 1 wins!')
+        screen.addstr(9, 0, 'Player 1 wins!    ')
     elif end == 2:
-        screen.addstr(9, 0, 'Player 2 wins!')
+        screen.addstr(9, 0, 'Player 2 wins!    ')
     elif end == 3:
-        screen.addstr(9, 0, 'Draw!')
+        screen.addstr(9, 0, 'Draw!             ')
     screen.refresh()
+    await asyncio.sleep(5)
 
 async def read_sensor(protocol, addr, sensor):
     response = await protocol.request(Message(code=GET, uri=addr + sensor)).response
@@ -226,22 +206,54 @@ async def get_addr(protocol):
 
     return addr_mc
 
+async def player_led(protocol, addr, player):
+    led_list = ['/saul/LED(blue)/ACT_SWITCH', '/saul/LED(green)/ACT_SWITCH', '/saul/LED(red)/ACT_SWITCH']
+    if player == '1':
+        # Red on
+        payload = bytes(str(1), 'ascii')
+        request = Message(code=PUT, payload=payload, uri=str(addr + led_list[2]))
+        response = await protocol.request(request).response
+
+        # Others off
+        payload = bytes(str(0), 'ascii')
+        request = Message(code=PUT, payload=payload, uri=str(addr + led_list[0]))
+        response = await protocol.request(request).response
+        request = Message(code=PUT, payload=payload, uri=str(addr + led_list[1]))
+        response = await protocol.request(request).response
+
+    elif player == '2':
+        # Green on
+        payload = bytes(str(1), 'ascii')
+        request = Message(code=PUT, payload=payload, uri=str(addr + led_list[1]))
+        response = await protocol.request(request).response
+
+        # Others off
+        payload = bytes(str(0), 'ascii')
+        request = Message(code=PUT, payload=payload, uri=str(addr + led_list[0]))
+        response = await protocol.request(request).response
+        request = Message(code=PUT, payload=payload, uri=str(addr + led_list[2]))
+        response = await protocol.request(request).response
+
 async def ttt_main(screen):
+
+    screen.addstr(2, 0, 'Initializing!')
+    screen.addstr(13, 0, 'Player 1: RED!')
+    screen.addstr(14, 0, 'Player 2: GREEN!')
+    screen.refresh()
+
     protocol = await Context.create_client_context()
     addr_mc_ar = await get_addr(protocol)
-    addr_mc = addr_mc_ar[0]
 
-    await read_sensor(protocol, addr_mc, '/saul/mma8x5x/SENSE_ACCEL')
+    mc_p1 = addr_mc_ar[0]
+    mc_p2 = addr_mc_ar[1]
 
-    await tictactoe(protocol, addr_mc, screen)
-    # screen.clear()
+    await player_led(protocol, mc_p1, '1')
+    await player_led(protocol, mc_p2, '2')
 
-    # while True:
-    #     screen.addstr(0, 0, playing_field)
-    #     for p in field_pos.keys():
-    #         screen.addstr(field_pos[p][0], field_pos[p][1], f'{ttt_array[int(p[0])][int(p[1])]}')
-    #         screen.move(field_pos[curser_loc][0], field_pos[curser_loc][1])
-    #     screen.refresh()
+    await tictactoe(protocol, mc_p1, mc_p2, screen)
+
+    await protocol.shutdown()
+
 
 def main(screen):
     return asyncio.run(ttt_main(screen))
